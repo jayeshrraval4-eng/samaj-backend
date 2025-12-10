@@ -1086,5 +1086,6 @@ app.post("/trust/opinion", async (req, res) => {
 // START SERVER
 // ----------------------------
 app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+  console.log(`Server live on port ${PORT}`);
 });
+
