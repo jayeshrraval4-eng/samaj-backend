@@ -49,6 +49,48 @@ app.get("/health", (_req, res) => {
 });
 
 // ----------------------------
+// HOME STATS (LIVE)
+// ----------------------------
+app.get("/home-stats", async (req, res) => {
+  try {
+    const { phone } = req.query;
+    if (!phone) {
+      return res.status(400).json({ success: false, error: "phone required" });
+    }
+
+    // 1. Profiles viewed (dummy logic for now)
+    const { count: profilesViewed } = await supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true });
+
+    // 2. Interests received
+    const { count: interests } = await supabase
+      .from("match_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("to_user_id", phone);
+
+    // 3. Messages count
+    const { count: messages } = await supabase
+      .from("messages")
+      .select("*", { count: "exact", head: true })
+      .eq("receiver_id", phone);
+
+    return res.json({
+      success: true,
+      stats: {
+        profilesViewed: profilesViewed || 0,
+        interests: interests || 0,
+        messages: messages || 0,
+      },
+    });
+  } catch (err) {
+    console.error("HOME STATS ERROR:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// ----------------------------
 // GET ALL PROFILES
 // ----------------------------
 app.get("/profiles", async (_req, res) => {
