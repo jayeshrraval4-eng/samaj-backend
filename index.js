@@ -1081,6 +1081,82 @@ app.post("/trust/opinion", async (req, res) => {
   }
 });
 
+/* ----------------------------------------------------
+   HOME SCREEN STATS
+---------------------------------------------------- */
+app.get("/home-stats", async (req, res) => {
+  try {
+    const { phone } = req.query;
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        error: "phone required",
+      });
+    }
+
+    const { count: profilesViewed } = await supabase
+      .from("profile_views")
+      .select("*", { count: "exact", head: true })
+      .eq("viewer_phone", phone);
+
+    const { count: interestsSent } = await supabase
+      .from("interests")
+      .select("*", { count: "exact", head: true })
+      .eq("from_phone", phone);
+
+    const { count: messages } = await supabase
+      .from("messages")
+      .select("*", { count: "exact", head: true })
+      .eq("sender_id", phone);
+
+    return res.json({
+      success: true,
+      data: {
+        profilesViewed: profilesViewed || 0,
+        interestsSent: interestsSent || 0,
+        messages: messages || 0,
+      },
+    });
+  } catch (err) {
+    console.error("home-stats error:", err);
+    return res.status(500).json({
+      success: false,
+      error: "SERVER_ERROR",
+    });
+  }
+});
+
+/* ----------------------------------------------------
+   NOTIFICATIONS UNREAD COUNT
+---------------------------------------------------- */
+app.get("/notifications/unread-count", async (req, res) => {
+  try {
+    const { phone } = req.query;
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        error: "phone required",
+      });
+    }
+
+    const { count } = await supabase
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("user_phone", phone)
+      .eq("read", false);
+
+    return res.json({
+      success: true,
+      count: count || 0,
+    });
+  } catch (err) {
+    console.error("unread-count error:", err);
+    return res.status(500).json({
+      success: false,
+      error: "SERVER_ERROR",
+    });
+  }
+});
 
 // ----------------------------
 // START SERVER
